@@ -1,3 +1,0 @@
-# Philosopher
-
-testing
