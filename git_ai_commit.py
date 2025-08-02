@@ -2,8 +2,8 @@ import os
 import subprocess
 import sys
 import signal
-from git import Repo, InvalidGitRepositoryError, GitCommandError # type: ignore
-import google.generativeai as genai # type: ignore
+from git import Repo, InvalidGitRepositoryError, GitCommandError  # type: ignore
+import google.generativeai as genai  # type: ignore
 import tempfile
 
 # --- Configuration ---
@@ -24,17 +24,21 @@ def print_header_banner():
     print("        AI-POWERED GIT COMMIT GENERATOR")
     print("=" * 60 + "\n")
 
+
 def print_footer_banner():
     print("\n" + "=" * 60)
     print("             Commit Process Finished")
     print("=" * 60 + "\n")
+
 
 # --- Signal Handler for Ctrl+C ---
 def signal_handler(sig, frame):
     print("\n\nCtrl+C detected. Exiting commit process gracefully.")
     sys.exit(0)
 
+
 signal.signal(signal.SIGINT, signal_handler)
+
 
 # --- Helper Functions ---
 def get_staged_diff():
@@ -52,6 +56,7 @@ def get_staged_diff():
         print(f"Error executing Git command: {e}")
         sys.exit(1)
 
+
 def get_staged_files():
     try:
         repo = Repo(os.getcwd())
@@ -59,6 +64,7 @@ def get_staged_files():
         return files
     except Exception:
         return []
+
 
 def generate_commit_message(diff_content, staged_files):
     print("\n--- AI Message Generation ---")
@@ -90,7 +96,6 @@ Diff:
 
 Generate the commit message now:
 """
-
         response = model.generate_content(prompt)
         if response.parts and hasattr(response.parts[0], 'text'):
             return response.parts[0].text.strip()
@@ -101,6 +106,7 @@ Generate the commit message now:
     except Exception as e:
         print(f"Error calling AI model: {e}")
         return "feat: AI generation failed"
+
 
 def improve_description(raw_description, staged_files):
     try:
@@ -130,7 +136,6 @@ Raw description:
 
 Commit description:
 """
-
         response = model.generate_content(description_prompt)
         if response.parts and hasattr(response.parts[0], 'text'):
             return response.parts[0].text.strip()
@@ -138,6 +143,7 @@ Commit description:
     except Exception as e:
         print(f"AI enhancement failed: {e}")
         return raw_description
+
 
 def edit_text_with_editor(initial_text):
     EDITOR = os.getenv('EDITOR', 'nano' if os.name != 'nt' else 'notepad')
@@ -162,11 +168,13 @@ def edit_text_with_editor(initial_text):
             pass
     return edited_text
 
+
 def format_commit_message(title, description):
     commit_message = title
     if description:
         commit_message += f"\n\n{description}"
     return commit_message
+
 
 # --- Main Logic ---
 if __name__ == "__main__":
@@ -174,8 +182,11 @@ if __name__ == "__main__":
     diff = get_staged_diff()
     staged_files = get_staged_files()
 
+    commit_message = ""
+
     while True:
-        commit_message = generate_commit_message(diff, staged_files)
+        if not commit_message:
+            commit_message = generate_commit_message(diff, staged_files)
 
         print(f"\n--- Proposed Commit Title ---\n")
         print(f"{commit_message}\n")
@@ -184,23 +195,47 @@ if __name__ == "__main__":
         user_choice = input("Confirm (y), Regenerate (n), Edit (e), or Quit (q)? ").lower().strip()
 
         if user_choice == 'y':
-            add_desc = input("Do you want to add a description? (y/n): ").lower().strip()
-            if add_desc != 'y':
-                description = ""
-            else:
-                print("\nOpening editor to enter your own commit description...")
-                raw_description = edit_text_with_editor("")
-
-                if not raw_description.strip():
-                    print("\nNo description entered. Skipping description.")
+            while True:
+                add_desc = input("Do you want to add a description or `a` for auto-generate? (y/n/a): ").lower().strip()
+                if add_desc == 'n':
                     description = ""
-                else:
+                    break
+                elif add_desc == 'y':
+                    print("\nOpening editor to enter your own commit description...")
+                    raw_description = edit_text_with_editor("")
+                    if not raw_description.strip():
+                        print("\nNo description entered. Skipping description.")
+                        description = ""
+                    else:
+                        improved_description = improve_description(raw_description, staged_files)
+                        while True:
+                            print("\n--- Improved Description ---\n")
+                            print(improved_description + "\n")
+                            desc_choice = input("Accept (y), Edit (e), Regenerate (n), or Skip (s)? ").lower().strip()
+                            if desc_choice == 'y':
+                                description = improved_description
+                                break
+                            elif desc_choice == 'e':
+                                description = edit_text_with_editor(improved_description)
+                                improved_description = description
+                            elif desc_choice == 'n':
+                                print("\nRegenerating improved description...\n")
+                                improved_description = improve_description(raw_description, staged_files)
+                            elif desc_choice == 's':
+                                description = ""
+                                break
+                            else:
+                                print("Invalid choice. Please enter 'y', 'n', 'e', or 's'.")
+                    break
+                elif add_desc == 'a':
+                    print("\nAuto-generating description based on file changes...")
+                    raw_description = ""
                     improved_description = improve_description(raw_description, staged_files)
 
                     while True:
-                        print("\n--- Improved Description ---\n")
+                        print("\n--- Auto-Generated Description ---\n")
                         print(improved_description + "\n")
-                        desc_choice = input("Accept (y), Edit (e), Regenerate (n), or Skip (s)? ").lower().strip()
+                        desc_choice = input("Accept (y), Edit (e), Regenerate (n), Skip (s), or Quit (q)? ").lower().strip()
 
                         if desc_choice == 'y':
                             description = improved_description
@@ -209,13 +244,19 @@ if __name__ == "__main__":
                             description = edit_text_with_editor(improved_description)
                             improved_description = description
                         elif desc_choice == 'n':
-                            print("\nRegenerating improved description...\n")
+                            print("\nRegenerating auto-generated description...\n")
                             improved_description = improve_description(raw_description, staged_files)
                         elif desc_choice == 's':
                             description = ""
                             break
+                        elif desc_choice == 'q':
+                            print("\nCommit process cancelled during description editing.")
+                            sys.exit(0)
                         else:
-                            print("Invalid choice. Please enter 'y', 'n', 'e', or 's'.")
+                            print("Invalid choice. Please enter 'y', 'n', 'e', 's', or 'q'.")
+                    break
+                else:
+                    print("Invalid choice. Please enter 'y', 'n', or 'a'.")
 
             full_commit_message = format_commit_message(commit_message, description)
 
@@ -231,6 +272,7 @@ if __name__ == "__main__":
             print("\n---------------------------------")
             print("Regenerating a new commit message...")
             print("---------------------------------\n")
+            commit_message = ""  # reset for regeneration
 
         elif user_choice == 'e':
             print("\n---------------------------------")
@@ -244,53 +286,10 @@ if __name__ == "__main__":
                 EDITOR = os.getenv('EDITOR', 'nano' if os.name != 'nt' else 'notepad')
                 subprocess.run([EDITOR, temp_file_path], check=True)
                 with open(temp_file_path, 'r') as f:
-                    edited_commit_message = f.read().strip()
+                    commit_message = f.read().strip()
             finally:
                 if os.path.exists(temp_file_path):
                     os.remove(temp_file_path)
-
-            add_desc = input("Do you want to add a description? (y/n): ").lower().strip()
-            if add_desc != 'y':
-                description = ""
-            else:
-                print("\nOpening editor to enter your own commit description...")
-                raw_description = edit_text_with_editor("")
-
-                if not raw_description.strip():
-                    print("\nNo description entered. Skipping description.")
-                    description = ""
-                else:
-                    improved_description = improve_description(raw_description, staged_files)
-
-                    while True:
-                        print("\n--- Improved Description ---\n")
-                        print(improved_description + "\n")
-                        desc_choice = input("Accept (y), Edit (e), Regenerate (n), or Skip (s)? ").lower().strip()
-
-                        if desc_choice == 'y':
-                            description = improved_description
-                            break
-                        elif desc_choice == 'e':
-                            description = edit_text_with_editor(improved_description)
-                            improved_description = description
-                        elif desc_choice == 'n':
-                            print("\nRegenerating improved description...\n")
-                            improved_description = improve_description(raw_description, staged_files)
-                        elif desc_choice == 's':
-                            description = ""
-                            break
-                        else:
-                            print("Invalid choice. Please enter 'y', 'n', 'e', or 's'.")
-
-            full_commit_message = format_commit_message(edited_commit_message, description)
-
-            try:
-                subprocess.run(['git', 'commit', '-m', full_commit_message], check=True)
-                print("\nCommit successful after edit!")
-            except subprocess.CalledProcessError as e:
-                print(f"Git commit failed: {e}")
-                sys.exit(1)
-            break
 
         elif user_choice == 'q':
             print("\nCommit process cancelled.")
