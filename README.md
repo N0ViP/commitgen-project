@@ -33,7 +33,21 @@ To use Gemini, you need an API key from Google.
 export GEMINI_API_KEY="your_api_key_here"
 ```
 
-> If not set, the script will use the fallback default key provided in the code, but this is not recommended.
+3. To make this permanent, add the line to your shell config file:
+
+```bash
+# For Zsh
+echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.zshrc
+
+# Or for Bash
+echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.bashrc
+```
+
+4. Then reload your shell:
+
+```bash
+source ~/.zshrc   # or source ~/.bashrc
+```
 
 ---
 
@@ -51,30 +65,53 @@ git add .
 python commitgen.py
 ```
 
-3. You'll be presented with an AI-generated commit message.
+3. You’ll be presented with an AI-generated commit message.
 
 4. Choose an action:
 
 - `y` – Confirm and commit the message.
 - `n` – Regenerate a new message using AI.
-- `e` – Open the message in your editor before committing.
+- `e` – Edit manually before committing.
 - `x` – Exit the script without committing.
+
+---
+
+## 🪄 Optional Git Alias
+
+To run the script more easily, add a Git alias:
+
+1. Open your Git config:
+
+```bash
+git config --global --edit
+```
+
+2. Add the following under `[alias]`:
+
+```ini
+[alias]
+    ai = "!python3 /home/yjaafar/Desktop/scripts/git_ai_commit.py"
+```
+
+Now you can use:
+
+```bash
+git ai
+```
 
 ---
 
 ## 🧼 Cleanup
 
-The script temporarily creates a file `COMMIT_EDITMSG_AI` for edited commits. It is automatically deleted after the commit.
+The script creates a temporary file `COMMIT_EDITMSG_AI` when editing. It deletes it automatically after committing.
 
 ---
 
 ## ❓ Common Issues
 
-- **No staged changes**: Make sure to run `git add .` before executing the script.
-
-- **Invalid or missing API key**: Ensure you've set the `GEMINI_API_KEY` environment variable correctly.
-
-- **Not a Git repository**: Make sure you're in the root of a valid Git repo.
+- **No staged changes**: Run `git add .` first.
+- **Missing or invalid API key**: Make sure `GEMINI_API_KEY` is correctly set.
+- **Not a Git repository**: Ensure you're inside a valid Git repo.
 
 ---
 
@@ -90,4 +127,3 @@ Powered by:
 
 - [GitPython](https://gitpython.readthedocs.io/)
 - [Google Generative AI Python SDK](https://github.com/google/generative-ai-python)
-
