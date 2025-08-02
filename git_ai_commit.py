@@ -65,20 +65,20 @@ def generate_commit_message(diff_content, staged_files):
         model = genai.GenerativeModel(MODEL_NAME)
         files_str = ", ".join(staged_files) if staged_files else "multiple files"
         prompt = f"""
-You are an AI that generates commit messages in the Conventional Commits format.
+Generate a Git commit message in the Conventional Commits format based on the given diff and list of modified files.
 
-Input:
-- Git diff of staged changes
-- List of modified files: {files_str}
-
-Task:
-- Analyze the diff and summarize the changes.
-- Generate a commit message in this exact format:
-
+Format:
 <type>(<scope>): <short imperative summary>
 
-Only output the single-line commit title. No descriptions, no bullets.
+Rules:
+- Use one of these types: feat, fix, refactor, chore, docs, style, test, build, ci, perf
+- The scope should be a lowercase keyword from the filename or feature (e.g., parser, lexer, exec)
+- The summary must be a short imperative sentence under 80 characters
+- Only output the single-line commit message — no descriptions, bullets, or explanations
+
+Modified files: {files_str}
 """
+
         response = model.generate_content(prompt)
         if response.parts and hasattr(response.parts[0], 'text'):
             return response.parts[0].text.strip()
