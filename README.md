@@ -115,11 +115,6 @@ The script creates a temporary file `COMMIT_EDITMSG_AI` when editing. It deletes
 
 ---
 
-## 📝 License
-
-
----
-
 ## 🙌 Credits
 
 Powered by:
