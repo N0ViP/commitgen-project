@@ -1,6 +1,6 @@
 # AI-Powered Git Commit Message Generator
 
-This tool uses Google Gemini to generate concise and conventional Git commit messages based on your staged code changes.
+This tool uses *Google Gemini* to generate concise and conventional Git commit messages based on your staged code changes.
 
 ---
 
