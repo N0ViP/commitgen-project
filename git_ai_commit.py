@@ -1,44 +1,40 @@
-
-
-
 import os
 import subprocess
 import sys
-import signal # Import the signal module for Ctrl+C handling
+import signal
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 import google.generativeai as genai
+import tempfile
 
 # --- Configuration ---
-# Replace with your actual Google Gemini API Key
-API_KEY = "Add_Your_API_Key"
-genai.configure(api_key=API_KEY)
+API_KEY = os.getenv("GEMINI_API_KEY")
+if not API_KEY:
+    print("Error: Gemini API key not found. Please set GEMINI_API_KEY environment variable.")
+    sys.exit(1)
 
-MODEL_NAME = "gemini-2.5-flash" #fast
-#MODEL_NAME = "gemini-2.5-pro"
+genai.configure(api_key=API_KEY)
+MODEL_NAME = "gemini-2.5-pro"
 
 # --- ASCII Art Banners ---
 def print_header_banner():
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("        AI-POWERED GIT COMMIT GENERATOR")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
 def print_footer_banner():
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("             Commit Process Finished")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
 # --- Signal Handler for Ctrl+C ---
 def signal_handler(sig, frame):
     print("\n\nCtrl+C detected. Exiting commit process gracefully.")
     sys.exit(0)
 
-# Register the signal handler
 signal.signal(signal.SIGINT, signal_handler)
 
 # --- Helper Functions ---
-
 def get_staged_diff():
-    """Gets the diff of staged changes."""
     try:
         repo = Repo(os.getcwd())
         diff = repo.git.diff('--cached')
@@ -53,87 +49,175 @@ def get_staged_diff():
         print(f"Error executing Git command: {e}")
         sys.exit(1)
 
-def generate_commit_message(diff_content):
-    """Generates a commit message using the AI."""
+def get_staged_files():
+    try:
+        repo = Repo(os.getcwd())
+        files = repo.git.diff('--cached', '--name-only').splitlines()
+        return files
+    except Exception:
+        return []
+
+def generate_commit_message(diff_content, staged_files):
     print("\n--- AI Message Generation ---")
     print("Generating commit message with AI... Please wait.")
     print("-----------------------------\n")
     try:
         model = genai.GenerativeModel(MODEL_NAME)
-        # IMPORTANT: Keeping the original prompt text as requested
+        files_str = ", ".join(staged_files) if staged_files else "multiple files"
         prompt = f"""
-		You are an AI that generates concise, conventional Git commit messages.
+You are an AI that generates commit messages in the Conventional Commits format.
 
-		Input: A Git diff.
+Input:
+- Git diff of staged changes
+- List of modified files: {files_str}
 
-		Task:
-		- Analyze the diff and generate a single-line commit message.
-		- Use the Conventional Commits format (e.g., feat:, fix:, docs:, refactor:, chore:).
-		- Summarize the core change clearly and accurately.
-		- Output only the commit message -- no explanations, comments, or code.
+Task:
+- Analyze the diff and summarize the changes.
+- Generate a commit message in this exact format:
 
-		Git Diff:
-		```diff
-		{diff_content}
-		
-		Commit Message:
-        """
+<type>(<scope>): <short imperative summary>
+
+Only output the single-line commit title. No descriptions, no bullets.
+"""
         response = model.generate_content(prompt)
-
-        # Accessing text content, handling potential issues
-        if response.parts:
-            # Check if response.parts[0] has a text attribute
-            if hasattr(response.parts[0], 'text'):
-                return response.parts[0].text.strip()
-            else:
-                print("Warning: AI response part has no text attribute. Raw response:", response.parts[0])
-                return "feat: AI generated message (no text content)"
+        if response.parts and hasattr(response.parts[0], 'text'):
+            return response.parts[0].text.strip()
         elif response.candidates and response.candidates[0].content.parts:
             return response.candidates[0].content.parts[0].text.strip()
         else:
-            print("Error: AI did not return a valid message.")
-            print(f"Full API response: {response}") # For debugging
-            return "feat: AI generated message (error)"
-
+            return "feat: AI generated message (invalid response)"
     except Exception as e:
         print(f"Error calling AI model: {e}")
-        print("Please check your API key and network connection.")
         return "feat: AI generation failed"
 
-# --- Main Logic ---
+def improve_description(raw_description, staged_files):
+    try:
+        model = genai.GenerativeModel(MODEL_NAME)
+        files_str = ", ".join(staged_files) if staged_files else "multiple files"
+        description_prompt = f"""
+You are an assistant that improves Git commit descriptions.
 
+Input:
+- A raw user-written explanation of the code change.
+- A list of files that were modified: {files_str}
+
+Your task:
+- Generate a detailed commit message body using bullet points.
+- Write as many bullet points as needed to fully explain the changes.
+- Include at least one bullet point for each modified file, describing what changed in that file.
+- Each bullet should describe a specific technical change or effect.
+- Use specific filenames, functions, or modules where possible.
+- Use `-` for each bullet point. No markdown, no extra formatting.
+- Be concise when changes are small (one bullet is fine).
+- Be more detailed when the change is bigger.
+- Avoid inventing changes or files.
+- If the raw description is empty or vague, infer only from filenames.
+
+Raw description:
+\"\"\"
+{raw_description}
+\"\"\"
+
+Improved commit message body:
+"""
+        response = model.generate_content(description_prompt)
+        if response.parts and hasattr(response.parts[0], 'text'):
+            return response.parts[0].text.strip()
+        return raw_description
+    except Exception as e:
+        print(f"AI enhancement failed: {e}")
+        return raw_description
+
+def edit_text_with_editor(initial_text):
+    EDITOR = os.getenv('EDITOR', 'nano' if os.name != 'nt' else 'notepad')
+    comment_hint = "# Enter your commit description below. Lines starting with # will be ignored.\n\n"
+    initial_content = comment_hint + initial_text
+
+    with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tf:
+        tf.write(initial_content)
+        tf.flush()
+        temp_path = tf.name
+
+    try:
+        subprocess.run([EDITOR, temp_path], check=True)
+        with open(temp_path, 'r') as f:
+            edited_text = ''.join(
+                line for line in f.readlines() if not line.strip().startswith('#')
+            ).strip()
+    finally:
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
+    return edited_text
+
+def format_commit_message(title, description):
+    commit_message = title
+    if description:
+        commit_message += f"\n\n{description}"
+    return commit_message
+
+# --- Main Logic ---
 if __name__ == "__main__":
     print_header_banner()
     diff = get_staged_diff()
-
-    if not diff: # get_staged_diff already handles exit, but keeping this for clarity
-        sys.exit(0)
+    staged_files = get_staged_files()
 
     while True:
-        commit_message = generate_commit_message(diff)
+        commit_message = generate_commit_message(diff, staged_files)
 
-        print(f"\n--- Proposed Commit Message ---\n")
+        print(f"\n--- Proposed Commit Title ---\n")
         print(f"{commit_message}\n")
         print(f"---------------------------------\n")
 
-        # Improved prompt for user choice
-        user_choice = input("Confirm (y), Regenerate (n), Edit (e), or Exit (x)? ").lower().strip()
+        user_choice = input("Confirm (y), Regenerate (n), Edit (e), or Quit (q)? ").lower().strip()
 
         if user_choice == 'y':
+            print("\nOpening editor to enter your own commit description...")
+            raw_description = edit_text_with_editor("")
+
+            if not raw_description.strip():
+                print("\nNo description entered. Skipping description.")
+                description = ""
+            else:
+                improved_description = improve_description(raw_description, staged_files)
+
+                while True:
+                    print("\n--- Improved Description ---\n")
+                    print(improved_description + "\n")
+                    desc_choice = input("Accept (y), Edit (e), Regenerate (n), or Skip (s)? ").lower().strip()
+
+                    if desc_choice == 'y':
+                        description = improved_description
+                        break
+                    elif desc_choice == 'e':
+                        description = edit_text_with_editor(improved_description)
+                        improved_description = description
+                    elif desc_choice == 'n':
+                        print("\nRegenerating improved description...\n")
+                        improved_description = improve_description(raw_description, staged_files)
+                    elif desc_choice == 's':
+                        description = ""
+                        break
+                    else:
+                        print("Invalid choice. Please enter 'y', 'n', 'e', or 's'.")
+
+            full_commit_message = format_commit_message(commit_message, description)
+
             try:
-                subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+                subprocess.run(['git', 'commit', '-m', full_commit_message], check=True)
                 print("\nCommit successful!")
             except subprocess.CalledProcessError as e:
                 print(f"Git commit failed: {e}")
                 sys.exit(1)
-            break # Exit loop after successful commit
+            break
+
         elif user_choice == 'n':
             print("\n---------------------------------")
             print("Regenerating a new commit message...")
             print("---------------------------------\n")
-            # Loop continues to generate a new message
+
         elif user_choice == 'e':
-            # Allow editing the message
             print("\n---------------------------------")
             print("Opening default editor to modify commit message...")
             print("---------------------------------\n")
@@ -142,18 +226,19 @@ if __name__ == "__main__":
                 f.write(commit_message)
 
             try:
-                # Use git commit -t FILE to open the default editor with content from FILE
                 subprocess.run(['git', 'commit', '-t', temp_file_path], check=True)
                 print("\nCommit successful after edit!")
             finally:
-                # Clean up the temporary file
                 if os.path.exists(temp_file_path):
                     os.remove(temp_file_path)
-            break # Exit loop after successful commit
-        elif user_choice == 'x':
+            break
+
+        elif user_choice == 'q':
             print("\nCommit process cancelled.")
             sys.exit(0)
+
         else:
-            print("\nInvalid choice. Please enter 'y', 'n', 'e', or 'x'.")
+            print("\nInvalid choice. Please enter 'y', 'n', 'e', or 'q'.")
 
     print_footer_banner()
+
