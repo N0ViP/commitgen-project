@@ -72,7 +72,7 @@ python commitgen.py
 - `y` – Confirm and commit the message.
 - `n` – Regenerate a new message using AI.
 - `e` – Edit manually before committing.
-- `x` – Exit the script without committing.
+- `q` – Quit the script without committing.
 
 ---
 
