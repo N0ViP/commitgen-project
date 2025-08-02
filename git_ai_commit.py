@@ -8,7 +8,7 @@ import google.generativeai as genai
 # --- Configuration ---
 # Replace with your actual Google Gemini API Key
 # It's recommended to set this as an environment variable (e.g., export GEMINI_API_KEY="YOUR_KEY")
-API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCBrmFz851FSjo0zyW18C0NAcQo4vbzXM4")
+API_KEY = os.getenv("GEMINI_API_KEY", "Add_Your_API_Key")
 genai.configure(api_key=API_KEY)
 
 MODEL_NAME = "gemini-2.5-flash" #fast
