@@ -96,7 +96,7 @@ git config --global --edit
 Now you can use:
 
 ```bash
-git ai
+git ai-commit
 ```
 
 ---
