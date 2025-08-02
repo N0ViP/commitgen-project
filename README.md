@@ -90,7 +90,7 @@ git config --global --edit
 
 ```ini
 [alias]
-    ai = "!python3 /home/yjaafar/Desktop/scripts/git_ai_commit.py"
+    ai = "!python3 /PATH/TO/SCRIPT/git_ai_commit.py"
 ```
 
 Now you can use:
