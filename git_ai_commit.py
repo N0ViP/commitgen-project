@@ -107,31 +107,30 @@ def improve_description(raw_description, staged_files):
         model = genai.GenerativeModel(MODEL_NAME)
         files_str = ", ".join(staged_files) if staged_files else "multiple files"
         description_prompt = f"""
-You are an assistant that improves Git commit descriptions.
+You are an assistant that writes detailed Git commit descriptions based on user input and changed files.
 
 Input:
-- A raw user-written explanation of the code change.
-- A list of files that were modified: {files_str}
+- A raw user-written commit explanation.
+- A list of modified files: {files_str}
 
-Your task:
-- Generate a detailed commit message body using bullet points.
-- Write as many bullet points as needed to fully explain the changes.
-- Include at least one bullet point for each modified file, describing what changed in that file.
-- Each bullet should describe a specific technical change or effect.
-- Use specific filenames, functions, or modules where possible.
-- Use `-` for each bullet point. No markdown, no extra formatting.
-- Be concise when changes are small (one bullet is fine).
-- Be more detailed when the change is bigger.
-- Avoid inventing changes or files.
-- If the raw description is empty or vague, infer only from filenames.
+Task:
+- Generate a clean, conventional commit description in bullet points.
+- Each bullet starts with a dash and explains a distinct change.
+- Include one bullet point per modified file describing the specific change made.
+- Use technical terms and mention relevant functions or modules if possible.
+- Keep it professional, concise, and focused on the change impact.
+- Avoid vague or repetitive statements.
+- Do not add markdown or any extra formatting beyond simple dashes.
+- If the raw input is empty or insufficient, infer what you can from the filenames alone.
 
 Raw description:
 \"\"\"
 {raw_description}
 \"\"\"
 
-Improved commit message body:
+Commit description:
 """
+
         response = model.generate_content(description_prompt)
         if response.parts and hasattr(response.parts[0], 'text'):
             return response.parts[0].text.strip()
