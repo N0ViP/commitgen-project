@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "philo.h": "c",
+        "semaphore.h": "c",
+        "types.h": "c",
+        "limits.h": "c",
+        "cstdlib": "c"
+    }
+}
