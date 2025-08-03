@@ -16,8 +16,8 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-MODEL_NAME = "gemini-2.5-pro"    # for high-quality commits (slower)
-# MODEL_NAME = "gemini-2.5-flash"    # for fast commits (less detailed)
+# MODEL_NAME = "gemini-2.5-pro"    # for high-quality commits (slower)
+MODEL_NAME = "gemini-2.5-flash"    # for fast commits (less detailed)
 
 
 # --- ASCII Art Banners ---
