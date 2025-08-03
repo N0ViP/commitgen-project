@@ -76,28 +76,33 @@ def generate_commit_message(diff_content, staged_files):
         model = genai.GenerativeModel(MODEL_NAME)
         files_str = ", ".join(staged_files) if staged_files else "multiple files"
         prompt = f"""
-You are a helpful assistant that writes Git commit messages following the Conventional Commits specification.
+You are an expert assistant that writes precise Git commit messages following the **Conventional Commits** specification.
 
-Given the list of modified files and their diffs, generate a **single-line** commit message using the format:
+Your task is to generate a **single-line commit message** in the following format:
 
-<type>(<scope>): <short imperative summary>
+<type>(<scope>): <imperative summary>
 
-Rules:
-- Use one of these types: feat, fix, refactor, chore, docs, style, test, build, ci, perf
-- The scope should be a lowercase keyword derived from the filename or the main affected module (e.g., parser, lexer, exec)
-- The summary should be an imperative verb phrase, under 100 characters, clearly describing the change
-- Do not include any additional explanations, bullet points, or details—only the single-line commit message
-- Use present tense verbs (e.g., "add", "fix", "update")
-- Avoid pronouns and personal opinions
-- If multiple files are changed, choose a general scope or "multiple" if no clear scope emerges
+Guidelines:
+- Choose one type from: feat, fix, refactor, chore, docs, style, test, build, ci, perf
+- Derive the scope from the most relevant module, feature, or filename—use lowercase (e.g., parser, auth, api). If no clear scope exists, use "core" or "multiple".
+- The summary must:
+  - Be an imperative verb phrase (e.g., "add support for...").
+  - Stay under 100 characters.
+  - Clearly state what was changed and why or how (if possible).
+- Use present tense verbs only. Avoid gerunds (e.g., "adding", "updating").
+- Do **not** include:
+  - Any punctuation beyond the message line
+  - Extra commentary, markdown, or bullet points
+  - Pronouns or subjective language
 
-Modified files: {files_str}
-
-Diff:
+Inputs:
+- Modified files: {files_str}
+- Diff:
 {diff_content}
 
-Generate the commit message now:
+Generate only the commit message (no additional output):
 """
+
         response = model.generate_content(prompt)
         if response.parts and hasattr(response.parts[0], 'text'):
             return response.parts[0].text.strip()
