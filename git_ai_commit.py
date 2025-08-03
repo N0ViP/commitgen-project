@@ -16,8 +16,8 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-# MODEL_NAME = "gemini-2.5-pro"    # for high-quality commits (slower)
-MODEL_NAME = "gemini-2.5-flash"    # for fast commits (less detailed)
+MODEL_NAME = "gemini-2.5-pro"    # for high-quality commits (slower)
+# MODEL_NAME = "gemini-2.5-flash"    # for fast commits (less detailed)
 
 
 # --- ASCII Art Banners ---
@@ -85,7 +85,7 @@ Given the list of modified files and their diffs, generate a **single-line** com
 Rules:
 - Use one of these types: feat, fix, refactor, chore, docs, style, test, build, ci, perf
 - The scope should be a lowercase keyword derived from the filename or the main affected module (e.g., parser, lexer, exec)
-- The summary should be an imperative verb phrase, under 80 characters, clearly describing the change
+- The summary should be an imperative verb phrase, under 100 characters, clearly describing the change
 - Do not include any additional explanations, bullet points, or details—only the single-line commit message
 - Use present tense verbs (e.g., "add", "fix", "update")
 - Avoid pronouns and personal opinions
@@ -110,34 +110,42 @@ Generate the commit message now:
         return "feat: AI generation failed"
 
 
-def improve_description(raw_description, staged_files):
+def improve_description(diff_content, raw_description, staged_files):
     try:
         model = genai.GenerativeModel(MODEL_NAME)
         files_str = ", ".join(staged_files) if staged_files else "multiple files"
         description_prompt = f"""
-You are an assistant that writes detailed Git commit descriptions based on user input and changed files.
+You are an expert assistant specialized in crafting clear, detailed, and professional Git commit descriptions from given inputs.
 
-Input:
-- A raw user-written commit explanation.
+Inputs:
+- A staged diff showing code changes.
+- A raw user-written commit explanation (may be incomplete or missing).
 - A list of modified files: {files_str}
 
-Task:
-- Generate a clean, conventional commit description in bullet points.
-- Each bullet starts with a dash and explains a distinct change.
-- Include one bullet point per modified file describing the specific change made.
-- Use technical terms and mention relevant functions or modules if possible.
-- Keep it professional, concise, and focused on the change impact.
-- Avoid vague or repetitive statements.
-- Do not add markdown or any extra formatting beyond simple dashes.
-- If the raw input is empty or insufficient, infer what you can from the filenames alone.
+Your task:
+- Generate a concise, well-structured commit description in bullet points.
+- Each bullet must start with a dash and describe a distinct, meaningful change.
+- Provide exactly one bullet point per modified file, describing the change specific to that file.
+- Use precise technical language; reference relevant functions, classes, modules, or components wherever possible.
+- Focus on the impact and purpose of each change, emphasizing why the modification was necessary.
+- Avoid vague, generic, or repetitive statements.
+- Maintain a professional tone, keeping the description succinct yet informative.
+- Do not include any formatting other than simple dashes (no markdown, numbering, or extra symbols).
+- If the raw commit explanation is missing or insufficient, infer the most plausible changes from the filenames and diff content.
 
-Raw description:
+Below are the inputs to analyze:
+
+Diff:
+{diff_content}
+
+Raw commit explanation:
 \"\"\"
 {raw_description}
 \"\"\"
 
-Commit description:
+Generate the commit description below:
 """
+
         response = model.generate_content(description_prompt)
         if response.parts and hasattr(response.parts[0], 'text'):
             return response.parts[0].text.strip()
@@ -209,7 +217,7 @@ if __name__ == "__main__":
                         print("\nNo description entered. Skipping description.")
                         description = ""
                     else:
-                        improved_description = improve_description(raw_description, staged_files)
+                        improved_description = improve_description(diff, raw_description, staged_files)
                         while True:
                             print("\n--- Improved Description ---\n")
                             print(improved_description + "\n")
@@ -222,7 +230,7 @@ if __name__ == "__main__":
                                 improved_description = description
                             elif desc_choice == 'n':
                                 print("\nRegenerating improved description...\n")
-                                improved_description = improve_description(raw_description, staged_files)
+                                improved_description = improve_description(diff, raw_description, staged_files)
                             elif desc_choice == 's':
                                 description = ""
                                 break
@@ -232,7 +240,7 @@ if __name__ == "__main__":
                 elif add_desc == 'a':
                     print("\nAuto-generating description based on file changes...")
                     raw_description = ""
-                    improved_description = improve_description(raw_description, staged_files)
+                    improved_description = improve_description(diff, raw_description, staged_files)
 
                     while True:
                         print("\n--- Auto-Generated Description ---\n")
@@ -247,7 +255,7 @@ if __name__ == "__main__":
                             improved_description = description
                         elif desc_choice == 'n':
                             print("\nRegenerating auto-generated description...\n")
-                            improved_description = improve_description(raw_description, staged_files)
+                            improved_description = improve_description(diff, raw_description, staged_files)
                         elif desc_choice == 's':
                             description = ""
                             break
