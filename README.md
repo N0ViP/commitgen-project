@@ -56,7 +56,7 @@ python -m commitgen
 Install via pip for global use:
 
 ```bash
-pip install git+https://github.com/N0ViP/commitgen.git
+pip install git+https://github.com/<your-username>/commitgen.git
 ```
 
 Then you can run it from any Git repository:
@@ -92,7 +92,7 @@ git commitgen
 | `a`    | Auto-generate detailed description |
 | `r`    | Regenerate description             |
 | `s`    | Skip description                   |
-| `e`    | Edit description manually          |
+| `d`    | Edit description manually          |
 
 ### Example
 
@@ -139,6 +139,26 @@ git commitgen
 
 ---
 
+## Removing CommitGen
+
+To completely remove CommitGen from your system:
+
+1. If installed globally via pip:
+
+```bash
+pip uninstall commitgen
+```
+
+2. If run from source, delete the project folder:
+
+```bash
+rm -rf /path/to/commitgen-project
+```
+
+This removes all scripts and files related to the tool.
+
+---
+
 ## Project Structure
 
 ```
@@ -157,13 +177,11 @@ commitgen/
 
 ## Contributing
 
-* Follow modular, readable Python conventions
-* Add inline comments for clarity
-* Open to issues and pull requests on GitHub
+Contributions are welcome! To contribute:
+
+* Follow modular, readable Python conventions.
+* Include clear inline comments for code clarity.
+* Open issues or submit pull requests on GitHub to suggest improvements or fixes.
 
 ---
-
-## License
-
-MIT License © 2025
 
