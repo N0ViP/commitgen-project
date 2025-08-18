@@ -183,5 +183,3 @@ Contributions are welcome! To contribute:
 * Include clear inline comments for code clarity.
 * Open issues or submit pull requests on GitHub to suggest improvements or fixes.
 
----
-
