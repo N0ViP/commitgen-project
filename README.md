@@ -56,7 +56,7 @@ python -m commitgen
 Install via pip for global use:
 
 ```bash
-pip install git+https://github.com/<your-username>/commitgen.git
+pip install git+https://github.com/N0ViP/commitgen.git
 ```
 
 Then you can run it from any Git repository:
