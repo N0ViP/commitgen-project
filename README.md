@@ -1,20 +1,25 @@
-# AI-Powered Git Commit Message Generator
-
-This tool uses *Google Gemini* to generate concise and conventional Git commit messages based on your staged code changes.
+# CommitGen – AI-Powered Git Commit Generator
 
 ---
 
-## 📦 Requirements
+## Overview
 
-Make sure you have the following installed:
+CommitGen is a professional tool that generates **Conventional Commits-compliant messages** using **Google Gemini AI**. It analyzes your **staged Git changes** and can optionally create **multi-line bullet-point descriptions** for each commit.
 
-- **Python 3.8+**
-- **Git**
-- Python packages:
-  - `gitpython`
-  - `google-generativeai`
+Key features:
 
-Install required packages:
+* Single-line AI-generated commit messages
+* Optional detailed descriptions per modified file
+* Interactive workflow: confirm, regenerate, edit, skip, quit
+* Handles edge cases: empty staging area, invalid API key, not a Git repository
+
+---
+
+## Requirements
+
+* **Python 3.8+**
+* **Git**
+* Python packages:
 
 ```bash
 pip install gitpython google-generativeai
@@ -22,102 +27,143 @@ pip install gitpython google-generativeai
 
 ---
 
-## 🔐 API Key Setup
+## API Key Setup
 
-To use Gemini, you need an API key from Google.
+CommitGen requires a **Google Gemini API key**.
 
-1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey) and create an API key.
-2. Set it as an environment variable:
+1. Create a key at [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Set the environment variable:
 
 ```bash
 export GEMINI_API_KEY="your_api_key_here"
 ```
 
-3. To make this permanent, add the line to your shell config file:
+3. Reload your shell or add it to your shell config (`.zshrc` or `.bashrc`) to make it permanent.
+
+---
+
+## Quick Start
+
+### Run from source
 
 ```bash
-# For Zsh
-echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.zshrc
-
-# Or for Bash
-echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.bashrc
+cd /path/to/commitgen-project
+python -m commitgen
 ```
 
-4. Then reload your shell:
+### Run globally (optional)
+
+Install via pip for global use:
 
 ```bash
-source ~/.zshrc   # or source ~/.bashrc
+pip install git+https://github.com/<your-username>/commitgen.git
+```
+
+Then you can run it from any Git repository:
+
+```bash
+git commitgen
 ```
 
 ---
 
-## ⚙️ How to Use
+## Usage
 
-1. Stage your changes in a Git repository:
+1. Stage your changes:
 
 ```bash
 git add .
 ```
 
-2. Run the script:
+2. Run CommitGen:
 
 ```bash
-python commitgen.py
+git commitgen
 ```
 
-3. You’ll be presented with an AI-generated commit message.
+3. Follow the prompts:
 
-4. Choose an action:
+| Option | Action                             |
+| ------ | ---------------------------------- |
+| `y`    | Confirm and commit AI message      |
+| `n`    | Regenerate commit message          |
+| `e`    | Edit message manually              |
+| `q`    | Quit without committing            |
+| `a`    | Auto-generate detailed description |
+| `r`    | Regenerate description             |
+| `s`    | Skip description                   |
+| `e`    | Edit description manually          |
 
-- `y` – Confirm and commit the message.
-- `n` – Regenerate a new message using AI.
-- `e` – Edit manually before committing.
-- `q` – Quit the script without committing.
+### Example
+
+```
+--- Proposed Commit Title ---
+feat: add user authentication module
+
+Confirm (y), Regenerate (n), Edit (e), or Quit (q)?
+y
+Add description (y), auto-generate (a), or skip (n)?
+a
+[main abc1234] feat: add user authentication module
+ 3 files changed, 25 insertions(+), 2 deletions(-)
+Commit successful!
+```
 
 ---
 
-## 🪄 Optional Git Alias
+## Optional Git Alias
 
-To run the script more easily, add a Git alias:
-
-1. Open your Git config:
-
-```bash
-git config --global --edit
-```
-
-2. Add the following under `[alias]`:
+Add a Git alias for convenience:
 
 ```ini
 [alias]
-    ai-commit = "!python3 /PATH/TO/SCRIPT/git_ai_commit.py"
+    commitgen = "!python3 /path/to/commitgen-project/__main__.py"
 ```
 
-Now you can use:
+Then run it as:
 
 ```bash
-git ai-commit
+git commitgen
 ```
 
 ---
 
-## 🧼 Cleanup
+## Features & Safety
 
-The script creates a temporary file `COMMIT_EDITMSG_AI` when editing. It deletes it automatically after committing.
-
----
-
-## ❓ Common Issues
-
-- **No staged changes**: Run `git add .` first.
-- **Missing or invalid API key**: Make sure `GEMINI_API_KEY` is correctly set.
-- **Not a Git repository**: Ensure you're inside a valid Git repo.
+* Checks if inside a Git repository
+* Verifies staged changes before committing
+* Handles empty or missing descriptions gracefully
+* Supports regeneration or manual editing of AI suggestions
+* Deletes temporary files automatically
+* Validates API key presence
 
 ---
 
-## 🙌 Credits
+## Project Structure
 
-Powered by:
+```
+commitgen/
+├── __init__.py       # Package initializer
+├── __main__.py       # CLI entry point
+├── cli.py            # Interactive workflow logic
+├── config.py         # Banner & configuration
+├── editor.py         # Editor integration for manual input
+├── ai_utils.py       # AI commit message generation
+├── git_utils.py      # Git helpers for diff and commit
+└── exceptions.py     # Custom exceptions for robust handling
+```
 
-- [GitPython](https://gitpython.readthedocs.io/)
-- [Google Generative AI Python SDK](https://github.com/google/generative-ai-python)
+---
+
+## Contributing
+
+* Follow modular, readable Python conventions
+* Add inline comments for clarity
+* Open to issues and pull requests on GitHub
+
+---
+
+## License
+
+MIT License © 2025
+
