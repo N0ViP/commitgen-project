@@ -1,12 +1,13 @@
 """
-Git utilities: get staged diff, list files, run commit.
+Git helper functions for CommitGen.
 """
+
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 import subprocess
 from commitgen.exceptions import GitRepoError, NoStagedChangesError
 
 def get_staged_diff() -> str:
-    """Return the git staged diff, or raise NoStagedChangesError."""
+    """Return the git staged diff."""
     try:
         repo = Repo(".")
         diff = repo.git.diff("--cached")

@@ -1,6 +1,7 @@
 """
-Custom exceptions used by commitgen.
+Custom exceptions for CommitGen
 """
+
 class CommitGenError(Exception):
     """Base exception for commitgen."""
     pass

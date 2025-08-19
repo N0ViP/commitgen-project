@@ -1,107 +1,73 @@
 """
-Command-line interface and main workflow for commitgen.
-Handles user interaction for generating commit messages and descriptions.
+CLI logic for CommitGen.
 """
+
 import sys
-from commitgen.config import print_header_banner, print_footer_banner
-from commitgen.editor import edit_text_with_editor
 from commitgen.ai_utils import generate_commit_message, improve_description
+from commitgen.editor import edit_text_with_editor
 from commitgen.git_utils import get_staged_diff, get_staged_files, run_git_commit
+from commitgen.config import HEADER_BANNER, FOOTER_BANNER
 from commitgen.exceptions import GitRepoError, NoStagedChangesError
 
-def main():
-    """Main CLI workflow."""
-    print_header_banner()
-
-    # Get git staged diff and files
-    try:
-        diff = get_staged_diff()
-        staged_files = get_staged_files()
-    except NoStagedChangesError:
-        print("No staged changes found. Please stage your files using 'git add' before running commitgen.")
-        sys.exit(0)
-    except GitRepoError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
-    commit_message = ""
-
-    while True:
-        # Generate commit message if empty
-        if not commit_message:
-            commit_message = generate_commit_message(diff, staged_files)
-
-        print(f"\n--- Proposed Commit Title ---\n{commit_message}\n")
-        choice = input("Confirm (y), Regenerate (n), Edit (e), or Quit (q)? ").lower().strip()
-
-        if choice == 'y':
-            description = _description_workflow(diff, staged_files)
-            full_message = commit_message
-            if description:
-                full_message += f"\n\n{description}"
-
-            try:
-                run_git_commit(full_message)
-                print("\nCommit successful!")
-            except Exception as e:
-                print(f"Git commit failed: {e}")
-                sys.exit(1)
-            break
-        elif choice == 'n':
-            commit_message = ""  # regenerate
-        elif choice == 'e':
-            commit_message = edit_text_with_editor(commit_message)
-        elif choice == 'q':
-            print("Commit process cancelled.")
-            sys.exit(0)
-        else:
-            print("Invalid choice. Enter y/n/e/q.")
-
-    print_footer_banner()
-
-
-def _description_workflow(diff, staged_files):
+def description_workflow(diff: str, staged_files: list) -> str:
     """
-    Handles commit description workflow.
-    Options: add manually (y), auto-generate (a), skip (n)
+    Interactive workflow to generate or edit commit description.
     """
+    description = ""
     while True:
-        add_desc = input("Add description (y), auto-generate (a), or skip (n)? ").lower().strip()
-
-        if add_desc == 'n':
+        choice = input("Add description (y), auto-generate (a), or skip (n)? ").lower().strip()
+        if choice == "n":
             return ""
-        elif add_desc == 'y':
-            raw_description = edit_text_with_editor("")
-            description = improve_description(diff, raw_description, staged_files) if raw_description else ""
-            return _confirm_description(description, diff, staged_files)
-        elif add_desc == 'a':
-            description = improve_description(diff, "", staged_files)
-            return _confirm_description(description, diff, staged_files)
+        elif choice == "y":
+            raw = edit_text_with_editor("")
+            description = improve_description(diff, raw, staged_files)
+            return description
+        elif choice == "a":
+            raw = improve_description(diff, "", staged_files)
+            # Remove first line if it looks like a commit title
+            lines = raw.splitlines()
+            if lines and lines[0].split(":")[0].lower() in [
+                "feat", "fix", "build", "refactor", "chore", "docs", "test", "style"
+            ]:
+                description = "\n".join(lines[1:]).strip()
+            else:
+                description = raw
+            return description
         else:
             print("Invalid choice. Enter y/n/a.")
 
+def main():
+    """Main CLI workflow for CommitGen."""
+    print(HEADER_BANNER)
+    try:
+        diff = get_staged_diff()
+        staged_files = get_staged_files()
+        title = generate_commit_message(diff, staged_files)
+        print("\n--- Proposed Commit Title ---")
+        print(title + "\n")
+        confirm = input("Confirm (y), Regenerate (n), Edit (e), or Quit (q)? ").lower().strip()
+        if confirm == "q":
+            print("Commit cancelled by user.")
+            return 0
+        elif confirm == "n":
+            title = generate_commit_message(diff, staged_files)
+        elif confirm == "e":
+            title = edit_text_with_editor(title)
 
-def _confirm_description(description, diff, staged_files):
-    """
-    Confirm or modify the commit description.
-    Options: Accept (y), Edit (e), Regenerate (n), Skip (s), Quit (q)
-    """
-    while True:
-        print("\n--- Proposed Commit Description ---\n")
-        print(description + "\n" if description else "(No description generated)\n")
+        description = description_workflow(diff, staged_files)
 
-        choice = input("Accept (y), Edit (e), Regenerate (n), Skip (s), Quit (q)? ").lower().strip()
-        if choice == 'y':
-            return description
-        elif choice == 'e':
-            description = edit_text_with_editor(description)
-        elif choice == 'n':
-            description = improve_description(diff, "", staged_files)
-        elif choice == 's':
-            return ""
-        elif choice == 'q':
-            print("Commit process cancelled during description editing.")
-            sys.exit(0)
-        else:
-            print("Invalid choice. Enter y/e/n/s/q.")
+        commit_message = title
+        if description:
+            commit_message += "\n\n" + description
+
+        run_git_commit(commit_message)
+        print("\nCommit successful!")
+    except NoStagedChangesError:
+        print("No staged changes found. Please stage files using 'git add'.")
+    except GitRepoError as e:
+        print(f"Error: {e}")
+    except KeyboardInterrupt:
+        print("\nCtrl+C detected. Exiting commit process.")
+    finally:
+        print(FOOTER_BANNER)
 

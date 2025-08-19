@@ -38,7 +38,21 @@ CommitGen requires a **Google Gemini API key**.
 export GEMINI_API_KEY="your_api_key_here"
 ```
 
-3. Reload your shell or add it to your shell config (`.zshrc` or `.bashrc`) to make it permanent.
+3. To make it permanent, add the line to your shell config file:
+
+```bash
+# For Zsh
+echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.zshrc
+
+# For Bash
+echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.bashrc
+```
+
+4. Reload your shell:
+
+```bash
+source ~/.zshrc   # or source ~/.bashrc
+```
 
 ---
 
@@ -48,7 +62,7 @@ export GEMINI_API_KEY="your_api_key_here"
 
 ```bash
 cd /path/to/commitgen-project
-python -m commitgen
+python3 -m commitgen
 ```
 
 ### Run globally (optional)
@@ -81,49 +95,34 @@ git add .
 git commitgen
 ```
 
-3. Follow the prompts:
-
-| Option | Action                             |
-| ------ | ---------------------------------- |
-| `y`    | Confirm and commit AI message      |
-| `n`    | Regenerate commit message          |
-| `e`    | Edit message manually              |
-| `q`    | Quit without committing            |
-| `a`    | Auto-generate detailed description |
-| `r`    | Regenerate description             |
-| `s`    | Skip description                   |
-| `d`    | Edit description manually          |
-
 ### Example
 
 ```
+============================================================
+        AI-POWERED GIT COMMIT GENERATOR
+============================================================
+
 --- Proposed Commit Title ---
-feat: add user authentication module
+build: remove project metadata and build configuration
 
-Confirm (y), Regenerate (n), Edit (e), or Quit (q)?
-y
-Add description (y), auto-generate (a), or skip (n)?
-a
-[main abc1234] feat: add user authentication module
- 3 files changed, 25 insertions(+), 2 deletions(-)
+Confirm (y), Regenerate (n), Edit (e), or Quit (q)? y
+Add description (y), auto-generate (a), or skip (n)? a
+
+--- Proposed Commit Description ---
+
+- Remove build, project, and dependency configuration from `pyproject.toml`.
+- Delete the `git-commitgen` script alias.
+
+Accept (y), Edit (e), Regenerate (n), Skip (s), Quit (q)? y
+[main 053cf4a] build: remove project metadata and build configuration
+ 2 files changed, 3 insertions(+), 25 deletions(-)
+ rewrite pyproject.toml (88%)
+
 Commit successful!
-```
 
----
-
-## Optional Git Alias
-
-Add a Git alias for convenience:
-
-```ini
-[alias]
-    commitgen = "!python3 /path/to/commitgen-project/__main__.py"
-```
-
-Then run it as:
-
-```bash
-git commitgen
+============================================================
+             Commit Process Finished
+============================================================
 ```
 
 ---

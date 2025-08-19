@@ -1,14 +1,22 @@
 """
-Helper to edit text with user's preferred editor.
+Helper functions for text editing using system editor.
 """
+
 import os
 import subprocess
 import tempfile
 
 def edit_text_with_editor(initial_text: str) -> str:
     """
-    Opens a temporary file in the system editor for editing text.
-    Returns the edited text without lines starting with '#' (comments).
+    Open a temporary file in user's preferred editor to edit text.
+
+    Lines starting with '#' are ignored.
+
+    Args:
+        initial_text (str): The initial text to prefill in editor.
+
+    Returns:
+        str: Edited text.
     """
     EDITOR = os.getenv("EDITOR", "nano" if os.name != "nt" else "notepad")
     comment_hint = "# Enter text below. Lines starting with # will be ignored.\n\n"

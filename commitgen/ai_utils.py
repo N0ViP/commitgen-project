@@ -1,19 +1,23 @@
 """
 AI utilities for generating commit messages and descriptions using Google Gemini API.
 """
+
 import os
 import google.generativeai as genai
+
+from commitgen.config import MODEL_NAME
 
 # Configure API key
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
-    raise RuntimeError("GEMINI_API_KEY not set")
+    raise RuntimeError("GEMINI_API_KEY not set. Add it to your environment or shell config.")
 
 genai.configure(api_key=API_KEY)
-MODEL_NAME = "gemini-2.5-pro"
 
 def generate_commit_message(diff_content: str, staged_files: list) -> str:
-    """Generate a single-line conventional commit message from diff."""
+    """
+    Generate a single-line Conventional Commit message from the diff.
+    """
     model = genai.GenerativeModel(MODEL_NAME)
     files_str = ", ".join(staged_files) if staged_files else "multiple files"
 
@@ -33,7 +37,7 @@ Generate only a single-line commit message.
 
 def improve_description(diff_content: str, raw_description: str, staged_files: list) -> str:
     """
-    Generate a professional bullet-point description from diff and raw description.
+    Generate a professional bullet-point commit description.
     """
     model = genai.GenerativeModel(MODEL_NAME)
     files_str = ", ".join(staged_files) if staged_files else "multiple files"
