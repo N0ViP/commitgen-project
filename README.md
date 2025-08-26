@@ -24,8 +24,8 @@
 Clone the repository and install with pip:
 
 ```bash
-git clone https://github.com/yourname/commitgen.git
-cd commitgen
+git clone https://github.com/N0ViP/commitgen-project.git
+cd commitgen-project
 pip install -e .
 ```
 
