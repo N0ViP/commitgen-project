@@ -53,6 +53,8 @@ export COMMITGEN_MODEL="gemini-2.5-flash"   # for faster responses
 - `gemini-1.5-flash`
 - `gemini-1.5-pro`
 
+👉 If you **don’t like the results**, you can change the **prompt templates** used for commit titles and descriptions at any time. The prompts are defined in `ai_helpers.py`, and you can adjust their wording or style to better fit your workflow.
+
 For permanent setup, add the exports to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.).
 
 ---
