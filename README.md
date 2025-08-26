@@ -1,3 +1,5 @@
+![Example](example.png)
+
 # CommitGen
 
 **CommitGen** is an AI-powered Git commit message generator that follows the **Conventional Commits** specification. It uses Google's Gemini model to suggest concise, professional commit messages and descriptions.
