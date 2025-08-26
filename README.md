@@ -1,123 +1,110 @@
-# AI-Powered Git Commit Message Generator
+# CommitGen
 
-This tool uses *Google Gemini* to generate concise and conventional Git commit messages based on your staged code changes.
+**CommitGen** is an AI-powered Git commit message generator that follows the **Conventional Commits** specification. It uses Google's Gemini model to suggest concise, professional commit messages and descriptions.
 
 ---
 
-## 📦 Requirements
+## ✨ Features
+- Generates **Conventional Commit** titles (feat, fix, chore, etc.).
+- Provides detailed bullet-point descriptions of changes.
+- Interactive flow with options to **accept, regenerate, edit, or skip**.
+- Integrates seamlessly with your Git workflow.
 
-Make sure you have the following installed:
+---
 
-- **Python 3.8+**
-- **Git**
-- Python packages:
-  - `gitpython`
-  - `google-generativeai`
+## ⚙️ Requirements
+- Python **3.9+**
+- [GitPython](https://pypi.org/project/GitPython/)
+- [google-generativeai](https://pypi.org/project/google-generativeai/)
+- A valid **Gemini API key** from Google AI Studio.
 
-Install required packages:
+---
+
+## 🚀 Installation
+Clone the repository and install with pip:
 
 ```bash
-pip install gitpython google-generativeai
+git clone https://github.com/yourname/commitgen.git
+cd commitgen
+pip install -e .
 ```
+
+This will install `commitgen` as a CLI command.
 
 ---
 
-## 🔐 API Key Setup
+## 🔑 Setting up your API Key
+CommitGen requires a Gemini API key. You can obtain one from [Google AI Studio](https://ai.google.dev/).
 
-To use Gemini, you need an API key from Google.
-
-1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey) and create an API key.
-2. Set it as an environment variable:
+Export it as an environment variable:
 
 ```bash
 export GEMINI_API_KEY="your_api_key_here"
 ```
 
-3. To make this permanent, add the line to your shell config file:
+Optionally, you can set the model:
 
 ```bash
-# For Zsh
-echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.zshrc
-
-# Or for Bash
-echo 'export GEMINI_API_KEY="your_api_key_here"' >> ~/.bashrc
+export COMMITGEN_MODEL="gemini-2.5-flash"   # for faster responses
 ```
 
-4. Then reload your shell:
+👉 If you notice **no response or empty output from the AI**, try switching the model to:
+- `gemini-2.5-flash`
+- `gemini-1.5-flash`
+- `gemini-1.5-pro`
 
-```bash
-source ~/.zshrc   # or source ~/.bashrc
-```
+For permanent setup, add the exports to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.).
 
 ---
 
-## ⚙️ How to Use
-
-1. Stage your changes in a Git repository:
-
-```bash
-git add .
-```
-
-2. Run the script:
-
-```bash
-python commitgen.py
-```
-
-3. You’ll be presented with an AI-generated commit message.
-
-4. Choose an action:
-
-- `y` – Confirm and commit the message.
-- `n` – Regenerate a new message using AI.
-- `e` – Edit manually before committing.
-- `q` – Quit the script without committing.
+## 📝 Usage
+1. Stage your changes as usual:
+   ```bash
+   git add .
+   ```
+2. Run CommitGen:
+   ```bash
+   commitgen
+   ```
+3. Follow the interactive prompts:
+   - Accept / regenerate / edit the suggested commit title.
+   - Optionally provide or skip a description.
+   - Confirm and commit.
 
 ---
 
-## 🪄 Optional Git Alias
+## ⚠️ Potential Issues
+- **No staged changes** → CommitGen will exit with an error until you run `git add`.
+- **Missing API key** → Ensure `GEMINI_API_KEY` is exported in your environment.
+- **Model errors or empty output** → Try changing the model as explained above.
+- **Windows editor issues** → By default, CommitGen uses `notepad` on Windows and `nano` on Unix. Set `$EDITOR` to override.
 
-To run the script more easily, add a Git alias:
+---
 
-1. Open your Git config:
+## ❌ Uninstalling
+To remove CommitGen:
 
 ```bash
-git config --global --edit
+pip uninstall commitgen
 ```
 
-2. Add the following under `[alias]`:
-
-```ini
-[alias]
-    ai-commit = "!python3 /PATH/TO/SCRIPT/git_ai_commit.py"
-```
-
-Now you can use:
+And if you cloned the repository, you can safely delete the project folder:
 
 ```bash
-git ai-commit
+rm -rf commitgen
 ```
 
----
-
-## 🧼 Cleanup
-
-The script creates a temporary file `COMMIT_EDITMSG_AI` when editing. It deletes it automatically after committing.
+Remove the environment variables from your shell profile if you no longer need them.
 
 ---
 
-## ❓ Common Issues
+## 🙋 FAQ
+**Q: Can I still write my own commit messages?**  
+Yes! CommitGen only helps when you run it. You can always use `git commit` directly.
 
-- **No staged changes**: Run `git add .` first.
-- **Missing or invalid API key**: Make sure `GEMINI_API_KEY` is correctly set.
-- **Not a Git repository**: Ensure you're inside a valid Git repo.
+**Q: Does it support multiple files and big diffs?**  
+Yes, but generation time depends on the size of the diff and the chosen Gemini model.
 
----
+**Q: Is my code sent to Google?**  
+Yes, staged diffs are sent to the Gemini API to generate commit messages. Avoid staging sensitive information if this is a concern.
 
-## 🙌 Credits
-
-Powered by:
-
-- [GitPython](https://gitpython.readthedocs.io/)
-- [Google Generative AI Python SDK](https://github.com/google/generative-ai-python)
