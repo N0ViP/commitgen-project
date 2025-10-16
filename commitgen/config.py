@@ -4,6 +4,8 @@ from git import Repo
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL_NAME = os.getenv("COMMITGEN_MODEL", "gemini-2.5-flash")
+os.environ["GRPC_VERBOSITY"] = "NONE"
+os.environ["GRPC_LOG_SEVERITY_LEVEL"] = "ERROR"
 BANNER_WIDTH = 60
 
 # Single Repo instance
