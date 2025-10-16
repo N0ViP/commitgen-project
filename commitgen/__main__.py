@@ -1,3 +1,9 @@
+import os
+
+os.environ["GRPC_VERBOSITY"] = "NONE"
+os.environ["GRPC_LOG_SEVERITY_LEVEL"] = "ERROR"
+
+
 import sys
 import signal
 import google.generativeai as genai
