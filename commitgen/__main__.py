@@ -71,7 +71,7 @@ def main() -> None:
             signal_handler(signal.SIGINT, None)
 
         while True:
-            description = generate_description(diff, staged_files, notes)
+            description = generate_description(diff, staged_files, notes, title)
             print("\n--- Proposed Description ---\n")
             print(description + "\n")
             print("-" * BANNER_WIDTH + "\n")
