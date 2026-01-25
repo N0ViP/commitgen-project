@@ -1,11 +1,38 @@
-import google.generativeai as genai
-from .config import MODEL_NAME
+from .config import API_KEY, MODEL_NAME
 from .utils import clean_first_line
+
+_HAS_NEW_SDK = False
+_HAS_OLD_SDK = False
+
+try:
+    from google import genai as new_genai
+    _HAS_NEW_SDK = True
+except Exception:
+    new_genai = None
+
+if not _HAS_NEW_SDK:
+    try:
+        import google.generativeai as old_genai
+        _HAS_OLD_SDK = True
+    except Exception:
+        old_genai = None
 
 def ai_generate(prompt: str) -> str:
     try:
-        model = genai.GenerativeModel(MODEL_NAME)
-        resp = model.generate_content(prompt)
+        if not API_KEY:
+            return ""
+        if _HAS_NEW_SDK:
+            client = new_genai.Client(api_key=API_KEY)
+            resp = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=prompt,
+            )
+        elif _HAS_OLD_SDK:
+            old_genai.configure(api_key=API_KEY)
+            model = old_genai.GenerativeModel(MODEL_NAME)
+            resp = model.generate_content(prompt)
+        else:
+            return ""
         text = ""
         if hasattr(resp, "text") and isinstance(resp.text, str) and resp.text.strip():
             text = resp.text

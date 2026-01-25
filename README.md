@@ -17,7 +17,8 @@
 ## ⚙️ Requirements
 - Python **3.9+**
 - [GitPython](https://pypi.org/project/GitPython/)
-- [google-generativeai](https://pypi.org/project/google-generativeai/)
+- [google-genai](https://pypi.org/project/google-genai/)
+- [google-generativeai](https://pypi.org/project/google-generativeai/) (legacy fallback)
 - A valid **Gemini API key** from Google AI Studio.
 
 ---

@@ -6,7 +6,6 @@ os.environ["GRPC_LOG_SEVERITY_LEVEL"] = "ERROR"
 
 import sys
 import signal
-import google.generativeai as genai
 
 from .config import API_KEY, REPO
 from .config import BANNER_WIDTH
@@ -25,8 +24,6 @@ def main() -> None:
     print_header_banner()
     if not API_KEY:
         fail("Gemini API key not found. Please set GEMINI_API_KEY environment variable.")
-    genai.configure(api_key=API_KEY)
-
     global REPO
     REPO = init_repo()
 
