@@ -6,7 +6,7 @@
 
 ---
 
-## ✨ Features
+##  Features
 - Generates **Conventional Commit** titles (feat, fix, chore, etc.).
 - Provides detailed bullet-point descriptions of changes.
 - Interactive flow with options to **accept, regenerate, edit, or skip**.
@@ -14,7 +14,7 @@
 
 ---
 
-## ⚙️ Requirements
+##  Requirements
 - Python **3.9+**
 - [GitPython](https://pypi.org/project/GitPython/)
 - [google-genai](https://pypi.org/project/google-genai/)
@@ -23,7 +23,7 @@
 
 ---
 
-## 🚀 Installation
+##  Installation
 Clone the repository and install with pip:
 
 ```bash
@@ -36,7 +36,7 @@ This will install `commitgen` as a CLI command.
 
 ---
 
-## 🔑 Setting up your API Key
+##  Setting up your API Key
 CommitGen requires a Gemini API key. You can obtain one from [Google AI Studio](https://ai.google.dev/).
 
 Export it as an environment variable:
@@ -51,18 +51,18 @@ Optionally, you can set the model:
 export COMMITGEN_MODEL="gemini-2.5-flash"   # for faster responses
 ```
 
-👉 If you notice **no response or empty output from the AI**, try switching the model to:
+ If you notice **no response or empty output from the AI**, try switching the model to:
 - `gemini-2.5-flash`
 - `gemini-1.5-flash`
 - `gemini-1.5-pro`
 
-👉 If you **don’t like the results**, you can change the **prompt templates** used for commit titles and descriptions at any time. The prompts are defined in `ai_helpers.py`, and you can adjust their wording or style to better fit your workflow.
+ If you **don’t like the results**, you can change the **prompt templates** used for commit titles and descriptions at any time. The prompts are defined in `ai_helpers.py`, and you can adjust their wording or style to better fit your workflow.
 
 For permanent setup, add the exports to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.).
 
 ---
 
-## 📝 Usage
+##  Usage
 1. Stage your changes as usual:
    ```bash
    git add .
@@ -78,7 +78,7 @@ For permanent setup, add the exports to your shell profile (`~/.bashrc`, `~/.zsh
 
 ---
 
-## ⚠️ Potential Issues
+##  Potential Issues
 - **No staged changes** → CommitGen will exit with an error until you run `git add`.
 - **Missing API key** → Ensure `GEMINI_API_KEY` is exported in your environment.
 - **Model errors or empty output** → Try changing the model as explained above.
@@ -86,7 +86,7 @@ For permanent setup, add the exports to your shell profile (`~/.bashrc`, `~/.zsh
 
 ---
 
-## ❌ Uninstalling
+##  Uninstalling
 To remove CommitGen:
 
 ```bash
@@ -103,7 +103,7 @@ Remove the environment variables from your shell profile if you no longer need t
 
 ---
 
-## 🙋 FAQ
+##  FAQ
 **Q: Can I still write my own commit messages?**  
 Yes! CommitGen only helps when you run it. You can always use `git commit` directly.
 
