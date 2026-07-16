@@ -10,7 +10,7 @@ authors = [
     { name="Yahya Jaafar" }
 ]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "gitpython>=3.1.0",
     "google-genai>=0.6.0",
