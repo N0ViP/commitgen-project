@@ -1,6 +1,13 @@
 from .config import API_KEY, MODEL_NAME
 from .utils import clean_first_line
 
+MAX_DIFF_CHARS = 8000
+
+def _truncate_diff(diff: str) -> str:
+    if len(diff) <= MAX_DIFF_CHARS:
+        return diff
+    return diff[:MAX_DIFF_CHARS] + "\n\n[... diff truncated for brevity ...]"
+
 _HAS_NEW_SDK = False
 _HAS_OLD_SDK = False
 
@@ -26,6 +33,11 @@ def ai_generate(prompt: str) -> str:
             resp = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=prompt,
+                config=new_genai.types.GenerateContentConfig(
+                    automatic_function_calling=new_genai.types.AutomaticFunctionCallingConfig(
+                        disable=True,
+                    ),
+                ),
             )
         elif _HAS_OLD_SDK:
             old_genai.configure(api_key=API_KEY)
@@ -48,24 +60,28 @@ def ai_generate(prompt: str) -> str:
 
 def generate_commit_title(diff_content: str, staged_files: list[str]) -> str:
     files_str = ", ".join(staged_files) if staged_files else "multiple files"
+    diff_content = _truncate_diff(diff_content)
     prompt = f"""
 You are a senior software engineer generating a **Conventional Commit title** based on code changes.
 
 Guidelines:
-- Output ONLY ONE line.
-- Format: `<type>(<scope>): <summary>`
+- Output ONLY ONE line — no explanations, no extra text.
+- Format: type(scope): summary
 - Use one of these types: feat, fix, refactor, style, docs, test, chore, perf, ci, build, revert.
-- The <scope> should be concise and relevant (e.g., a filename, folder, or feature).
-- The <summary> should describe what changed, using imperative mood ("add", "update", "fix", "remove").
-- Keep it under 70 characters.
-- Do NOT include punctuation at the end, emojis, or code snippets.
+- The scope should be concise and relevant (e.g., a filename, folder, or feature).
+- The summary should describe what changed, using imperative mood ("add", "update", "fix", "remove").
+- Keep the entire title under 70 characters.
+- Do NOT include punctuation at the end, emojis, code snippets, backticks, or quotes around the output.
+
+Example output:
+feat(auth): add JWT token refresh on session expiry
 
 Context:
 - Changed files: {files_str}
 - Git diff:
 {diff_content}
 
-Return only the final commit title.
+Return only the final commit title as plain text.
 """
     out = ai_generate(prompt)
     title = clean_first_line(out)
@@ -78,23 +94,25 @@ def generate_description(
     commit_title: str
 ) -> str:
     files_str = ", ".join(staged_files) if staged_files else "multiple files"
+    diff_content = _truncate_diff(diff_content)
     prompt = f"""
 You are a professional assistant writing a **Conventional Commit description** that complements this title:
 "{commit_title}"
 
 Guidelines:
-- The description should expand on the title — explain what changed and why.
-- Use bullet points for clarity and structure.
+- Expand on the title — explain what changed and why.
+- Use bullet points (starting with "- ") for clarity and structure.
 - Mention affected files or modules if relevant.
-- Avoid repeating the title verbatim; instead, provide supporting detail.
+- Do NOT repeat the title verbatim; provide supporting detail instead.
 - Keep a professional and concise tone.
-- Do NOT include markdown headers, code blocks, or commit hashes.
+- Do NOT include markdown headers, code blocks, backticks, or commit hashes.
+- Do NOT wrap your output in markdown formatting of any kind.
 - If user notes exist, use them to enrich the context.
 
-Example format:
-- Added `feature_x.c` to handle input validation
-- Updated `utils.c` for better memory management
-- Improved error logging in `main.c`
+Example output:
+- Added session refresh handler to prevent token expiry during long sessions
+- Updated auth middleware to validate token lifetime before each request
+- Removed deprecated legacy auth fallback logic
 
 Context:
 - Changed files: {files_str}
@@ -102,7 +120,7 @@ Context:
 - Git diff:
 {diff_content}
 
-Return only the formatted bullet-point description.
+Return only the formatted bullet-point description as plain text.
 """
     out = ai_generate(prompt)
     if not out:
