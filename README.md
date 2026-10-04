@@ -15,7 +15,7 @@
 ---
 
 ##  Requirements
-- Python **3.9+**
+- Python **3.11+**
 - [GitPython](https://pypi.org/project/GitPython/)
 - [google-genai](https://pypi.org/project/google-genai/)
 - [google-generativeai](https://pypi.org/project/google-generativeai/) (legacy fallback)
@@ -48,13 +48,12 @@ export GEMINI_API_KEY="your_api_key_here"
 Optionally, you can set the model:
 
 ```bash
-export COMMITGEN_MODEL="gemini-2.5-flash"   # for faster responses
+export COMMITGEN_MODEL="gemini-3.8-flash"   # default, recommended
 ```
 
- If you notice **no response or empty output from the AI**, try switching the model to:
-- `gemini-2.5-flash`
-- `gemini-1.5-flash`
-- `gemini-1.5-pro`
+> **💡** If you notice **no response or empty output from the AI**, try switching the model to:
+> - `gemini-3.8-flash` (default)
+> - `gemini-3.8-pro`
 
  If you **don’t like the results**, you can change the **prompt templates** used for commit titles and descriptions at any time. The prompts are defined in `ai_helpers.py`, and you can adjust their wording or style to better fit your workflow.
 

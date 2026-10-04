@@ -55,7 +55,9 @@ def ai_generate(prompt: str) -> str:
             if getattr(c0, "content", None) and getattr(c0.content, "parts", None):
                 text = c0.content.parts[0].text
         return text.strip()
-    except Exception:
+    except Exception as e:
+        import sys
+        print(f"\n[commitgen] AI error: {e}", file=sys.stderr)
         return ""
 
 def generate_commit_title(diff_content: str, staged_files: list[str]) -> str:
